@@ -1,6 +1,8 @@
 #ifndef RUNI_LISP_H
 #define RUNI_LISP_H
 
+#include <stddef.h>
+
 enum {
     RUNI_INTEGER = 1,
     RUNI_LIST,
@@ -46,5 +48,11 @@ struct runi_object {
         };
     };
 };
+
+extern struct runi_object *runi_nil;
+extern struct runi_object *runi_dot;
+extern struct runi_object *runi_cparen;
+extern struct runi_object *runi_true;
+extern struct runi_object *runi_symbols;
 
 #endif
