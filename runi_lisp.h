@@ -103,7 +103,7 @@ struct runi_object *runi_progn(struct runi_object *env, struct runi_object *list
 
 struct runi_object *runi_eval(struct runi_object *env, struct runi_object *obj);
 
-struct runi_object *prim_quote(struct runi_object *env, struct runi_object *list);
+struct runi_object *runi_prim_quote(struct runi_object *env, struct runi_object *list);
 
 struct runi_object *runi_prim_list(struct runi_object *env, struct runi_object *list);
 
@@ -133,6 +133,6 @@ struct runi_object *runi_prim_num_eq(struct runi_object *env, struct runi_object
 
 struct runi_object *runi_prim_exit(struct runi_object *env, struct runi_object *list);
 
-void add_primitive(struct runi_object *env, char *name, runi_primitive *fn);
+void runi_add_primitive(struct runi_object *env, char *name, runi_primitive *fn);
 
 #endif

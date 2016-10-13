@@ -351,7 +351,7 @@ struct runi_object *runi_eval(struct runi_object *env, struct runi_object *obj) 
         runi_error("Bug: eval: Unknown tag type: %d", obj->type);
     }
 }
-struct runi_object *prim_quote(struct runi_object *env, struct runi_object *list) {
+struct runi_object *runi_prim_quote(struct runi_object *env, struct runi_object *list) {
     if (runi_list_length(list) != 1)
         runi_error("Malformed quote");
     return list->car;
@@ -467,7 +467,7 @@ struct runi_object *runi_prim_exit(struct runi_object *env, struct runi_object *
     exit(EXIT_SUCCESS);
 }
 
-void add_primitive(struct runi_object *env, char *name, runi_primitive *fn) {
+void runi_add_primitive(struct runi_object *env, char *name, runi_primitive *fn) {
     struct runi_object *sym = runi_intern(name);
     struct runi_object *prim = runi_make_primitive(fn);
     runi_add_variable(env, sym, prim);
