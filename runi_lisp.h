@@ -2,6 +2,9 @@
 #define RUNI_LISP_H
 
 #include <stddef.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 enum {
     RUNI_INTEGER = 1,
@@ -54,5 +57,7 @@ extern struct runi_object *runi_dot;
 extern struct runi_object *runi_cparen;
 extern struct runi_object *runi_true;
 extern struct runi_object *runi_symbols;
+
+void __attribute((noreturn)) runi_error(char *fmt, ...);
 
 #endif
