@@ -231,6 +231,18 @@ void runi_add_variable(struct runi_object *env, struct runi_object *sym, struct 
     env->vars = runi_acons(sym, val, env->vars);
 }
 
+int runi_list_length(struct runi_object *list) {
+    int len = 0;
+    for (;;) {
+        if (list == runi_nil)
+            return len;
+        if (list->type != RUNI_LIST)
+            runi_error("length: cannot handle dotted list");
+        list = list->cdr;
+        len++;
+    }
+}
+
 static struct runi_object *runi_push_env(struct runi_object *env, struct runi_object *vars, struct runi_object *values) {
     if (runi_list_length(vars) != runi_list_length(values))
         runi_error("Cannot apply function: number of argument does not match");
@@ -269,18 +281,6 @@ struct runi_object *runi_eval_list(struct runi_object *env, struct runi_object *
 
 bool runi_is_list(struct runi_object *obj) {
   return obj == runi_nil || obj->type == RUNI_LIST;
-}
-
-int runi_list_length(struct runi_object *list) {
-    int len = 0;
-    for (;;) {
-        if (list == runi_nil)
-            return len;
-        if (list->type != RUNI_LIST)
-            runi_error("length: cannot handle dotted list");
-        list = list->cdr;
-        len++;
-    }
 }
 
 static struct runi_object *runi_apply(struct runi_object *env, struct runi_object *fn, struct runi_object *args) {
