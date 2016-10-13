@@ -351,3 +351,124 @@ struct runi_object *runi_eval(struct runi_object *env, struct runi_object *obj) 
         runi_error("Bug: eval: Unknown tag type: %d", obj->type);
     }
 }
+struct runi_object *prim_quote(struct runi_object *env, struct runi_object *list) {
+    if (runi_list_length(list) != 1)
+        runi_error("Malformed quote");
+    return list->car;
+}
+
+struct runi_object *runi_prim_list(struct runi_object *env, struct runi_object *list) {
+    return runi_eval_list(env, list);
+}
+
+struct runi_object *runi_prim_setq(struct runi_object *env, struct runi_object *list) {
+    if (runi_list_length(list) != 2 || list->car->type != RUNI_SYMBOL)
+        runi_error("Malformed setq");
+    struct runi_object *bind = runi_find(env, list->car);
+    if (!bind)
+        runi_error("Unbound variable %s", list->car->name);
+    struct runi_object *value = runi_eval(env, list->cdr->car);
+    bind->cdr = value;
+    return value;
+}
+
+struct runi_object *runi_prim_plus(struct runi_object *env, struct runi_object *list) {
+    int sum = 0;
+    for (struct runi_object *args = runi_eval_list(env, list); args != runi_nil; args = args->cdr) {
+        if (args->car->type != RUNI_INTEGER)
+            runi_error("+ takes only numbers");
+        sum += args->car->integer;
+    }
+    return runi_make_integer(sum);
+}
+
+static struct runi_object *runi_handle_function(struct runi_object *env, struct runi_object *list, int type) {
+    if (list->type != RUNI_LIST || !runi_is_list(list->car) || list->cdr->type != RUNI_LIST)
+        runi_error("Malformed lambda");
+    for (struct runi_object *p = list->car; p != runi_nil; p = p->cdr) {
+        if (p->car->type != RUNI_SYMBOL)
+            runi_error("Parameter must be a symbol");
+        if (!runi_is_list(p->cdr))
+            runi_error("Parameter list is not a flat list");
+    }
+    struct runi_object *car = list->car;
+    struct runi_object *cdr = list->cdr;
+    return runi_make_function(type, car, cdr, env);
+}
+
+struct runi_object *runi_prim_lambda(struct runi_object *env, struct runi_object *list) {
+    return runi_handle_function(env, list, RUNI_FUNCTION);
+}
+
+struct runi_object *runi_handle_defun(struct runi_object *env, struct runi_object *list, int type) {
+    if (list->car->type != RUNI_SYMBOL || list->cdr->type != RUNI_LIST)
+        runi_error("Malformed defun");
+    struct runi_object *sym = list->car;
+    struct runi_object *rest = list->cdr;
+    struct runi_object *fn = runi_handle_function(env, rest, type);
+    runi_add_variable(env, sym, fn);
+    return fn;
+}
+
+struct runi_object *runi_prim_defun(struct runi_object *env, struct runi_object *list) {
+    return runi_handle_defun(env, list, RUNI_FUNCTION);
+}
+
+struct runi_object *runi_prim_define(struct runi_object *env, struct runi_object *list) {
+    if (runi_list_length(list) != 2 || list->car->type != RUNI_SYMBOL)
+        runi_error("Malformed setq");
+    struct runi_object *sym = list->car;
+    struct runi_object *value = runi_eval(env, list->cdr->car);
+    runi_add_variable(env, sym, value);
+    return value;
+}
+
+struct runi_object *runi_prim_defmacro(struct runi_object *env, struct runi_object *list) {
+    return runi_handle_defun(env, list, RUNI_MACRO);
+}
+
+struct runi_object *runi_prim_macroexpand(struct runi_object *env, struct runi_object *list) {
+    if (runi_list_length(list) != 1)
+        runi_error("Malformed macroexpand");
+    struct runi_object *body = list->car;
+    return runi_macroexpand(env, body);
+}
+
+struct runi_object *runi_prim_println(struct runi_object *env, struct runi_object *list) {
+    runi_print(runi_eval(env, list->car));
+    printf("\n");
+    return runi_nil;
+}
+
+struct runi_object *runi_prim_if(struct runi_object *env, struct runi_object *list) {
+    if (runi_list_length(list) < 2)
+        runi_error("Malformed if");
+    struct runi_object *cond = runi_eval(env, list->car);
+    if (cond != runi_nil) {
+        struct runi_object *then = list->cdr->car;
+        return runi_eval(env, then);
+    }
+    struct runi_object *els = list->cdr->cdr;
+    return els == runi_nil ? runi_nil : runi_progn(env, els);
+}
+
+struct runi_object *runi_prim_num_eq(struct runi_object *env, struct runi_object *list) {
+    if (runi_list_length(list) != 2)
+        runi_error("Malformed =");
+    struct runi_object *values = runi_eval_list(env, list);
+    struct runi_object *x = values->car;
+    struct runi_object *y = values->cdr->car;
+    if (x->type != RUNI_INTEGER || y->type != RUNI_INTEGER)
+        runi_error("= only takes numbers");
+    return x->integer == y->integer ? runi_true : runi_nil;
+}
+
+struct runi_object *runi_prim_exit(struct runi_object *env, struct runi_object *list) {
+    exit(EXIT_SUCCESS);
+}
+
+void add_primitive(struct runi_object *env, char *name, runi_primitive *fn) {
+    struct runi_object *sym = runi_intern(name);
+    struct runi_object *prim = runi_make_primitive(fn);
+    runi_add_variable(env, sym, prim);
+}

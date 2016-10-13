@@ -103,4 +103,36 @@ struct runi_object *runi_progn(struct runi_object *env, struct runi_object *list
 
 struct runi_object *runi_eval(struct runi_object *env, struct runi_object *obj);
 
+struct runi_object *prim_quote(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_prim_list(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_prim_setq(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_prim_plus(struct runi_object *env, struct runi_object *list);
+
+static struct runi_object *runi_handle_function(struct runi_object *env, struct runi_object *list, int type);
+
+struct runi_object *runi_prim_lambda(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_handle_defun(struct runi_object *env, struct runi_object *list, int type);
+
+struct runi_object *runi_prim_defun(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_prim_define(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_prim_defmacro(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_prim_macroexpand(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_prim_println(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_prim_if(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_prim_num_eq(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_prim_exit(struct runi_object *env, struct runi_object *list);
+
+void add_primitive(struct runi_object *env, char *name, runi_primitive *fn);
+
 #endif
