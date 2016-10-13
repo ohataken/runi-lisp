@@ -181,3 +181,48 @@ struct runi_object *runi_parse(void) {
         runi_error("Don't know how to handle %c", c);
     }
 }
+
+void runi_print(struct runi_object *obj) {
+    switch (obj->type) {
+    case RUNI_INTEGER:
+        printf("%d", obj->integer);
+        return;
+    case RUNI_LIST:
+        printf("(");
+        for (;;) {
+            runi_print(obj->car);
+            if (obj->cdr == runi_nil)
+                break;
+            if (obj->cdr->type != RUNI_LIST) {
+                printf(" . ");
+                runi_print(obj->cdr);
+                break;
+            }
+            printf(" ");
+            obj = obj->cdr;
+        }
+        printf(")");
+        return;
+    case RUNI_SYMBOL:
+        printf("%s", obj->name);
+        return;
+    case RUNI_PRIMITIVE:
+        printf("<primitive>");
+        return;
+    case RUNI_FUNCTION:
+        printf("<function>");
+        return;
+    case RUNI_MACRO:
+        printf("<macro>");
+        return;
+    case RUNI_NIL:
+    case RUNI_TRUE:
+        if (obj == runi_nil)
+            printf("()");
+        else if (obj == runi_true)
+            printf("t");
+        return;
+    default:
+        runi_error("Bug: print: Unknown tag type: %d", obj->type);
+    }
+}

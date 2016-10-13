@@ -84,4 +84,6 @@ struct runi_object *runi_parse(void);
 
 struct runi_object *runi_intern(char *name);
 
+void runi_print(struct runi_object *obj);
+
 #endif
