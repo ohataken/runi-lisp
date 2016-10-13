@@ -1,5 +1,6 @@
 #ifndef RUNI_LISP_H
 #define RUNI_LISP_H
+#define RUNI_SYMBOL_MAX_LEN 200
 
 #include <stddef.h>
 #include <stdarg.h>
@@ -7,6 +8,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <ctype.h>
 
 enum {
     RUNI_INTEGER = 1,
@@ -77,5 +79,9 @@ struct runi_object *runi_make_env(struct runi_object *vars, struct runi_object *
 struct runi_object *runi_cons(struct runi_object *car, struct runi_object *cdr);
 
 struct runi_object *runi_acons(struct runi_object *x, struct runi_object *y, struct runi_object *a);
+
+struct runi_object *runi_parse(void);
+
+struct runi_object *runi_intern(char *name);
 
 #endif
