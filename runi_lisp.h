@@ -5,6 +5,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <string.h>
 
 enum {
     RUNI_INTEGER = 1,
@@ -59,5 +61,21 @@ extern struct runi_object *runi_true;
 extern struct runi_object *runi_symbols;
 
 void __attribute((noreturn)) runi_error(char *fmt, ...);
+
+struct runi_object *runi_make_integer(int integer);
+
+struct runi_object *runi_make_symbol(char *name);
+
+struct runi_object *runi_make_primitive(runi_primitive *fn);
+
+struct runi_object *runi_make_function(int type, struct runi_object *env, struct runi_object *args, struct runi_object *body);
+
+struct runi_object *runi_make_special(int type);
+
+struct runi_object *runi_make_env(struct runi_object *vars, struct runi_object *parent);
+
+struct runi_object *runi_cons(struct runi_object *car, struct runi_object *cdr);
+
+struct runi_object *runi_acons(struct runi_object *x, struct runi_object *y, struct runi_object *a);
 
 #endif
