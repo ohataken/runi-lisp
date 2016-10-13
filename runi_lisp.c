@@ -226,3 +226,128 @@ void runi_print(struct runi_object *obj) {
         runi_error("Bug: print: Unknown tag type: %d", obj->type);
     }
 }
+
+void runi_add_variable(struct runi_object *env, struct runi_object *sym, struct runi_object *val) {
+    env->vars = runi_acons(sym, val, env->vars);
+}
+
+static struct runi_object *runi_push_env(struct runi_object *env, struct runi_object *vars, struct runi_object *values) {
+    if (runi_list_length(vars) != runi_list_length(values))
+        runi_error("Cannot apply function: number of argument does not match");
+    struct runi_object *map = runi_nil;
+    for (struct runi_object *p = vars, *q = values; p != runi_nil; p = p->cdr, q = q->cdr) {
+        struct runi_object *sym = p->car;
+        struct runi_object *val = q->car;
+        map = runi_acons(sym, val, map);
+    }
+    return runi_make_env(map, env);
+}
+
+struct runi_object *runi_progn(struct runi_object *env, struct runi_object *list) {
+    struct runi_object *r = NULL;
+    for (struct runi_object *lp = list; lp != runi_nil; lp = lp->cdr)
+        r = runi_eval(env, lp->car);
+    return r;
+}
+
+struct runi_object *runi_eval_list(struct runi_object *env, struct runi_object *list) {
+    struct runi_object *head = NULL;
+    struct runi_object *tail = NULL;
+    for (struct runi_object *lp = list; lp != runi_nil; lp = lp->cdr) {
+        struct runi_object *tmp = runi_eval(env, lp->car);
+        if (head == NULL) {
+            head = tail = runi_cons(tmp, runi_nil);
+        } else {
+            tail->cdr = runi_cons(tmp, runi_nil);
+            tail = tail->cdr;
+        }
+    }
+    if (head == NULL)
+        return runi_nil;
+    return head;
+}
+
+bool runi_is_list(struct runi_object *obj) {
+  return obj == runi_nil || obj->type == RUNI_LIST;
+}
+
+int runi_list_length(struct runi_object *list) {
+    int len = 0;
+    for (;;) {
+        if (list == runi_nil)
+            return len;
+        if (list->type != RUNI_LIST)
+            runi_error("length: cannot handle dotted list");
+        list = list->cdr;
+        len++;
+    }
+}
+
+static struct runi_object *runi_apply(struct runi_object *env, struct runi_object *fn, struct runi_object *args) {
+    if (!runi_is_list(args))
+        runi_error("argument must be a list");
+    if (fn->type == RUNI_PRIMITIVE)
+        return fn->fn(env, args);
+    if (fn->type == RUNI_FUNCTION) {
+        struct runi_object *body = fn->body;
+        struct runi_object *args = fn->args;
+        struct runi_object *eargs = runi_eval_list(env, args);
+        struct runi_object *newenv = runi_push_env(fn->env, args, eargs);
+        return runi_progn(newenv, body);
+    }
+    runi_error("not supported");
+}
+
+struct runi_object *runi_find(struct runi_object *env, struct runi_object *sym) {
+    for (struct runi_object *p = env; p; p = p->parent) {
+        for (struct runi_object *cell = p->vars; cell != runi_nil; cell = cell->cdr) {
+            struct runi_object *bind = cell->car;
+            if (sym == bind->car)
+                return bind;
+        }
+    }
+    return NULL;
+}
+
+struct runi_object *runi_macroexpand(struct runi_object *env, struct runi_object *obj) {
+    if (obj->type != RUNI_LIST || obj->car->type != RUNI_SYMBOL)
+        return obj;
+    struct runi_object *bind = runi_find(env, obj->car);
+    if (!bind || bind->cdr->type != RUNI_MACRO)
+        return obj;
+    struct runi_object *args = obj->cdr;
+    struct runi_object *body = bind->cdr->body;
+    struct runi_object *params = bind->cdr->args;
+    struct runi_object *newenv = runi_push_env(env, params, args);
+    return runi_progn(newenv, body);
+}
+
+struct runi_object *runi_eval(struct runi_object *env, struct runi_object *obj) {
+    switch (obj->type) {
+    case RUNI_INTEGER:
+    case RUNI_PRIMITIVE:
+    case RUNI_FUNCTION:
+    case RUNI_NIL:
+    case RUNI_DOT:
+    case RUNI_TRUE:
+        return obj;
+    case RUNI_SYMBOL: {
+        struct runi_object *bind = runi_find(env, obj);
+        if (!bind)
+            runi_error("Undefined symbol: %s", obj->name);
+        return bind->cdr;
+    }
+    case RUNI_LIST: {
+        struct runi_object *expanded = runi_macroexpand(env, obj);
+        if (expanded != obj)
+            return runi_eval(env, expanded);
+        struct runi_object *fn = runi_eval(env, obj->car);
+        struct runi_object *args = obj->cdr;
+        if (fn->type != RUNI_PRIMITIVE && fn->type != RUNI_FUNCTION)
+            runi_error("The head of a list must be a function");
+        return runi_apply(env, fn, args);
+    }
+    default:
+        runi_error("Bug: eval: Unknown tag type: %d", obj->type);
+    }
+}

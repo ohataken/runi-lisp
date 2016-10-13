@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 enum {
     RUNI_INTEGER = 1,
@@ -85,5 +86,21 @@ struct runi_object *runi_parse(void);
 struct runi_object *runi_intern(char *name);
 
 void runi_print(struct runi_object *obj);
+
+void runi_add_variable(struct runi_object *env, struct runi_object *sym, struct runi_object *val);
+
+struct runi_object *runi_eval_list(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_find(struct runi_object *env, struct runi_object *sym);
+
+bool runi_is_list(struct runi_object *obj);
+
+int runi_list_length(struct runi_object *list);
+
+struct runi_object *runi_macroexpand(struct runi_object *env, struct runi_object *obj);
+
+struct runi_object *runi_progn(struct runi_object *env, struct runi_object *list);
+
+struct runi_object *runi_eval(struct runi_object *env, struct runi_object *obj);
 
 #endif
