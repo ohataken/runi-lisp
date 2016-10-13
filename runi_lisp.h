@@ -65,14 +65,6 @@ extern struct runi_object *runi_symbols;
 
 void __attribute((noreturn)) runi_error(char *fmt, ...);
 
-struct runi_object *runi_make_integer(int integer);
-
-struct runi_object *runi_make_symbol(char *name);
-
-struct runi_object *runi_make_primitive(runi_primitive *fn);
-
-struct runi_object *runi_make_function(int type, struct runi_object *env, struct runi_object *args, struct runi_object *body);
-
 struct runi_object *runi_make_special(int type);
 
 struct runi_object *runi_make_env(struct runi_object *vars, struct runi_object *parent);
@@ -89,17 +81,7 @@ void runi_print(struct runi_object *obj);
 
 void runi_add_variable(struct runi_object *env, struct runi_object *sym, struct runi_object *val);
 
-struct runi_object *runi_eval_list(struct runi_object *env, struct runi_object *list);
-
 struct runi_object *runi_find(struct runi_object *env, struct runi_object *sym);
-
-bool runi_is_list(struct runi_object *obj);
-
-int runi_list_length(struct runi_object *list);
-
-struct runi_object *runi_macroexpand(struct runi_object *env, struct runi_object *obj);
-
-struct runi_object *runi_progn(struct runi_object *env, struct runi_object *list);
 
 struct runi_object *runi_eval(struct runi_object *env, struct runi_object *obj);
 
@@ -110,8 +92,6 @@ struct runi_object *runi_prim_list(struct runi_object *env, struct runi_object *
 struct runi_object *runi_prim_setq(struct runi_object *env, struct runi_object *list);
 
 struct runi_object *runi_prim_plus(struct runi_object *env, struct runi_object *list);
-
-static struct runi_object *runi_handle_function(struct runi_object *env, struct runi_object *list, int type);
 
 struct runi_object *runi_prim_lambda(struct runi_object *env, struct runi_object *list);
 
