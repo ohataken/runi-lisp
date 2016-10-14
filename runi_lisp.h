@@ -15,6 +15,7 @@ enum {
     RUNI_INTEGER = 1,
     RUNI_LIST,
     RUNI_SYMBOL,
+    RUNI_STRING,
     RUNI_PRIMITIVE,
     RUNI_FUNCTION,
     RUNI_MACRO,
@@ -42,6 +43,8 @@ struct runi_object {
 
         char name[1];
 
+        char string[1];
+
         runi_primitive *fn;
 
         struct {
@@ -66,6 +69,10 @@ extern struct runi_object *runi_symbols;
 void __attribute((noreturn)) runi_error(char *fmt, ...);
 
 struct runi_object *runi_make_special(int type);
+
+struct runi_object *runi_make_integer(int integer);
+
+struct runi_object *runi_make_string(char *string);
 
 struct runi_object *runi_make_env(struct runi_object *vars, struct runi_object *parent);
 

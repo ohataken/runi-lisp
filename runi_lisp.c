@@ -34,6 +34,12 @@ struct runi_object *runi_make_symbol(char *name) {
     return sym;
 }
 
+struct runi_object *runi_make_string(char *string) {
+    struct runi_object *str = runi_alloc(RUNI_STRING, strlen(string) + 1);
+    strcpy(str->string, string);
+    return str;
+}
+
 struct runi_object *runi_make_primitive(runi_primitive *fn) {
     struct runi_object *r = runi_alloc(RUNI_PRIMITIVE, sizeof(runi_primitive *));
     r->fn = fn;
@@ -206,6 +212,9 @@ void runi_print(struct runi_object *obj) {
     case RUNI_SYMBOL:
         printf("%s", obj->name);
         return;
+    case RUNI_STRING:
+        printf("%s", obj->string);
+        return;
     case RUNI_PRIMITIVE:
         printf("<primitive>");
         return;
@@ -330,6 +339,7 @@ struct runi_object *runi_eval(struct runi_object *env, struct runi_object *obj) 
     case RUNI_NIL:
     case RUNI_DOT:
     case RUNI_TRUE:
+    case RUNI_STRING:    
         return obj;
     case RUNI_SYMBOL: {
         struct runi_object *bind = runi_find(env, obj);
