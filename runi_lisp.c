@@ -159,12 +159,32 @@ static struct runi_object *parse_symbol(char c) {
     return runi_intern(buf);
 }
 
+static char runi_parse_string_backslash(char c) {
+    if (getchar() != '\\')
+        runi_error("Malformed runi_parse_string_backslash");
+
+    c = getchar();
+
+    switch (c) {
+        case 'n':
+            return '\n';
+        case 'r':
+            return '\r';
+        default:
+            runi_error("Unkown backslash character");
+    }
+}
+
 static struct runi_object *runi_parse_string(char c) {
     char buf[RUNI_SYMBOL_MAX_LEN + 1];
     int len = 0;
     while (runi_peek() != '"') {
         if (RUNI_SYMBOL_MAX_LEN <= len)
             runi_error("String too long");
+        if (runi_peek() == '\\'){
+            buf[len++] = runi_parse_string_backslash(c);
+            continue;
+        }
         buf[len++] = getchar();
     }
     getchar();
