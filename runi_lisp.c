@@ -159,6 +159,19 @@ static struct runi_object *parse_symbol(char c) {
     return runi_intern(buf);
 }
 
+static struct runi_object *runi_parse_string(char c) {
+    char buf[RUNI_SYMBOL_MAX_LEN + 1];
+    int len = 0;
+    while (runi_peek() != '"') {
+        if (RUNI_SYMBOL_MAX_LEN <= len)
+            runi_error("String too long");
+        buf[len++] = getchar();
+    }
+    getchar();
+    buf[len] = '\0';
+    return runi_make_string(buf);
+}
+
 struct runi_object *runi_parse(void) {
     for (;;) {
         int c = getchar();
@@ -184,6 +197,8 @@ struct runi_object *runi_parse(void) {
             return runi_make_integer(-parse_number(0));
         if (isalpha(c) || strchr("+=!@#$%^&*", c))
             return parse_symbol(c);
+        if (c == '"')
+            return runi_parse_string(c);
         runi_error("Don't know how to handle %c", c);
     }
 }
@@ -339,7 +354,7 @@ struct runi_object *runi_eval(struct runi_object *env, struct runi_object *obj) 
     case RUNI_NIL:
     case RUNI_DOT:
     case RUNI_TRUE:
-    case RUNI_STRING:    
+    case RUNI_STRING:
         return obj;
     case RUNI_SYMBOL: {
         struct runi_object *bind = runi_find(env, obj);

@@ -90,6 +90,8 @@ void runi_add_variable(struct runi_object *env, struct runi_object *sym, struct 
 
 struct runi_object *runi_find(struct runi_object *env, struct runi_object *sym);
 
+struct runi_object *runi_eval_list(struct runi_object *env, struct runi_object *obj);
+
 struct runi_object *runi_eval(struct runi_object *env, struct runi_object *obj);
 
 struct runi_object *runi_prim_quote(struct runi_object *env, struct runi_object *list);
